@@ -54,6 +54,7 @@
 // ------------------------------------------------------------------------------
 
 #include "mavlink_control.h"
+#include <zmq.hpp>
 
 
 // ------------------------------------------------------------------------------
@@ -175,70 +176,44 @@ commands(Autopilot_Interface &api)
 	api.enable_offboard_control();
 	usleep(100); // give some time to let it sink in
 
-	// now the autopilot is accepting setpoint commands
+	//  Prepare our context and socket
+	zmq::context_t context (1);
+	zmq::socket_t socket (context, ZMQ_REP);
+	socket.bind ("tcp://*:5555");
 
+	while (true) {
+	  int json_size = 8192;
+	  char json[json_size];
+	  char buffer[json_size];
 
-	// --------------------------------------------------------------------------
-	//   SEND OFFBOARD COMMANDS
-	// --------------------------------------------------------------------------
-	printf("SEND OFFBOARD COMMANDS\n");
+	  zmq::message_t request;
 
-	// initialize command data strtuctures
-	mavlink_set_position_target_local_ned_t sp;
-	mavlink_set_position_target_local_ned_t ip = api.initial_position;
+	  //  Wait for next request from client
+	  socket.recv (&request);
+	  std::cout << "Received Hello" << std::endl;
 
-	// autopilot_interface.h provides some helper functions to build the command
+	  Mavlink_Messages messages = api.current_messages;
 
+	  //  Do some 'work'
+#define SPITF(X,Y) {sprintf(buffer, ",\"%s\" : \"%f\"\n", X, messages.Y); strncat(json, buffer, json_size);}
+#define SPITD(X,Y) {sprintf(buffer, ",\"%s\" : \"%d\"\n", X, messages.Y); strncat(json, buffer, json_size);}
+	  sprintf(json, "{ \"version\" : \"1.0\"\n");
+	  SPITF("lat", global_position_int.lat / 10000000.0);
+	  SPITF("lon", global_position_int.lon / 10000000.0);
+	  SPITF("alt", global_position_int.alt / 1000.0);
+	  SPITF("relative_alt", global_position_int.relative_alt / 1000.0);
+	  sprintf(buffer, "}"); strncat(json, buffer, json_size);
 
-	// Example 1 - Set Velocity
-//	set_velocity( -1.0       , // [m/s]
-//				  -1.0       , // [m/s]
-//				   0.0       , // [m/s]
-//				   sp        );
-
-	// Example 2 - Set Position
-	 set_position( ip.x - 5.0 , // [m]
-			 	   ip.y - 5.0 , // [m]
-				   ip.z       , // [m]
-				   sp         );
-
-
-	// Example 1.2 - Append Yaw Command
-	set_yaw( ip.yaw , // [rad]
-			 sp     );
-
-	// SEND THE COMMAND
-	api.update_setpoint(sp);
-	// NOW pixhawk will try to move
-
-	// Wait for 8 seconds, check position
-	for (int i=0; i < 8; i++)
-	{
-		mavlink_local_position_ned_t pos = api.current_messages.local_position_ned;
-		printf("%i CURRENT POSITION XYZ = [ % .4f , % .4f , % .4f ] \n", i, pos.x, pos.y, pos.z);
-		sleep(1);
+	  //  Send reply back to client
+	  int msglen = strlen(json);
+	  zmq::message_t reply (msglen);
+	  fprintf(stderr,"Send %s\n", json);
+	  memcpy (reply.data (), json, msglen);
+	  socket.send (reply);
 	}
+	return;
 
-	printf("\n");
-
-
-	// --------------------------------------------------------------------------
-	//   STOP OFFBOARD MODE
-	// --------------------------------------------------------------------------
-
-	api.disable_offboard_control();
-
-	// now pixhawk isn't listening to setpoint commands
-
-
-	// --------------------------------------------------------------------------
-	//   GET A MESSAGE
-	// --------------------------------------------------------------------------
-	printf("READ SOME MESSAGES \n");
-
-	// copy current messages
-	Mavlink_Messages messages = api.current_messages;
-
+#if 0
 	// local position in ned frame
 	mavlink_local_position_ned_t pos = messages.local_position_ned;
 	printf("Got message LOCAL_POSITION_NED (spec: https://pixhawk.ethz.ch/mavlink/#LOCAL_POSITION_NED)\n");
@@ -263,6 +238,7 @@ commands(Autopilot_Interface &api)
 	// --------------------------------------------------------------------------
 
 	return;
+#endif
 
 }
 

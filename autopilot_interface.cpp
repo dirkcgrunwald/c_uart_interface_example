@@ -187,7 +187,7 @@ set_yaw_rate(float yaw_rate, mavlink_set_position_target_local_ned_t &sp)
 //   Con/De structors
 // ------------------------------------------------------------------------------
 Autopilot_Interface::
-Autopilot_Interface(Serial_Port *serial_port_)
+Autopilot_Interface(Serial_Port *serial_port_, int verbose_)
 {
 	// initialize attributes
 	write_count = 0;
@@ -208,6 +208,7 @@ Autopilot_Interface(Serial_Port *serial_port_)
 	current_messages.compid = autopilot_id;
 
 	serial_port = serial_port_; // serial port management object
+	verbose = verbose_;
 
 }
 
@@ -227,6 +228,13 @@ update_setpoint(mavlink_set_position_target_local_ned_t setpoint)
 }
 
 
+void
+printmsg(mavlink_message_t *msg)
+{
+  
+}
+
+
 // ------------------------------------------------------------------------------
 //   Read Messages
 // ------------------------------------------------------------------------------
@@ -239,7 +247,7 @@ read_messages()
 	Time_Stamps this_timestamps;
 
 	// Blocking wait for new data
-	while ( not received_all and not time_to_exit )
+	while ( 1 )
 	{
 		// ----------------------------------------------------------------------
 		//   READ MESSAGE
@@ -264,7 +272,9 @@ read_messages()
 
 				case MAVLINK_MSG_ID_HEARTBEAT:
 				{
-					//printf("MAVLINK_MSG_ID_HEARTBEAT\n");
+				  if ( verbose ) {
+				    fprintf(stderr,"MAVLINK_MSG_ID_HEARTBEAT\n");
+				  }
 					mavlink_msg_heartbeat_decode(&message, &(current_messages.heartbeat));
 					current_messages.time_stamps.heartbeat = get_time_usec();
 					this_timestamps.heartbeat = current_messages.time_stamps.heartbeat;
@@ -273,7 +283,9 @@ read_messages()
 
 				case MAVLINK_MSG_ID_SYS_STATUS:
 				{
-					//printf("MAVLINK_MSG_ID_SYS_STATUS\n");
+				  if ( verbose ) {
+				    fprintf(stderr,"MAVLINK_MSG_ID_SYS_STATUS\n");
+				  }
 					mavlink_msg_sys_status_decode(&message, &(current_messages.sys_status));
 					current_messages.time_stamps.sys_status = get_time_usec();
 					this_timestamps.sys_status = current_messages.time_stamps.sys_status;
@@ -282,7 +294,9 @@ read_messages()
 
 				case MAVLINK_MSG_ID_BATTERY_STATUS:
 				{
-					//printf("MAVLINK_MSG_ID_BATTERY_STATUS\n");
+				  if ( verbose ) {
+				    fprintf(stderr,"MAVLINK_MSG_ID_BATTERY_STATUS\n");
+				  }
 					mavlink_msg_battery_status_decode(&message, &(current_messages.battery_status));
 					current_messages.time_stamps.battery_status = get_time_usec();
 					this_timestamps.battery_status = current_messages.time_stamps.battery_status;
@@ -291,7 +305,9 @@ read_messages()
 
 				case MAVLINK_MSG_ID_RADIO_STATUS:
 				{
-					//printf("MAVLINK_MSG_ID_RADIO_STATUS\n");
+				  if ( verbose ) {
+				    fprintf(stderr,"MAVLINK_MSG_ID_RADIO_STATUS\n");
+				  }
 					mavlink_msg_radio_status_decode(&message, &(current_messages.radio_status));
 					current_messages.time_stamps.radio_status = get_time_usec();
 					this_timestamps.radio_status = current_messages.time_stamps.radio_status;
@@ -300,7 +316,9 @@ read_messages()
 
 				case MAVLINK_MSG_ID_LOCAL_POSITION_NED:
 				{
-					//printf("MAVLINK_MSG_ID_LOCAL_POSITION_NED\n");
+				  if ( verbose ) {
+				    fprintf(stderr,"MAVLINK_MSG_ID_LOCAL_POSITION_NED\n");
+				  }
 					mavlink_msg_local_position_ned_decode(&message, &(current_messages.local_position_ned));
 					current_messages.time_stamps.local_position_ned = get_time_usec();
 					this_timestamps.local_position_ned = current_messages.time_stamps.local_position_ned;
@@ -309,7 +327,9 @@ read_messages()
 
 				case MAVLINK_MSG_ID_GLOBAL_POSITION_INT:
 				{
-					//printf("MAVLINK_MSG_ID_GLOBAL_POSITION_INT\n");
+				  if ( verbose ) {
+				    fprintf(stderr,"MAVLINK_MSG_ID_GLOBAL_POSITION_INT\n");
+				  }
 					mavlink_msg_global_position_int_decode(&message, &(current_messages.global_position_int));
 					current_messages.time_stamps.global_position_int = get_time_usec();
 					this_timestamps.global_position_int = current_messages.time_stamps.global_position_int;
@@ -318,7 +338,9 @@ read_messages()
 
 				case MAVLINK_MSG_ID_POSITION_TARGET_LOCAL_NED:
 				{
-					//printf("MAVLINK_MSG_ID_POSITION_TARGET_LOCAL_NED\n");
+				  if ( verbose ) {
+				    fprintf(stderr,"MAVLINK_MSG_ID_POSITION_TARGET_LOCAL_NED\n");
+				  }
 					mavlink_msg_position_target_local_ned_decode(&message, &(current_messages.position_target_local_ned));
 					current_messages.time_stamps.position_target_local_ned = get_time_usec();
 					this_timestamps.position_target_local_ned = current_messages.time_stamps.position_target_local_ned;
@@ -327,7 +349,9 @@ read_messages()
 
 				case MAVLINK_MSG_ID_POSITION_TARGET_GLOBAL_INT:
 				{
-					//printf("MAVLINK_MSG_ID_POSITION_TARGET_GLOBAL_INT\n");
+				  if ( verbose ) {
+				    fprintf(stderr,"MAVLINK_MSG_ID_POSITION_TARGET_GLOBAL_INT\n");
+				  }
 					mavlink_msg_position_target_global_int_decode(&message, &(current_messages.position_target_global_int));
 					current_messages.time_stamps.position_target_global_int = get_time_usec();
 					this_timestamps.position_target_global_int = current_messages.time_stamps.position_target_global_int;
@@ -336,7 +360,9 @@ read_messages()
 
 				case MAVLINK_MSG_ID_HIGHRES_IMU:
 				{
-					//printf("MAVLINK_MSG_ID_HIGHRES_IMU\n");
+				  if ( verbose ) {
+				    fprintf(stderr,"MAVLINK_MSG_ID_HIGHRES_IMU\n");
+				  }
 					mavlink_msg_highres_imu_decode(&message, &(current_messages.highres_imu));
 					current_messages.time_stamps.highres_imu = get_time_usec();
 					this_timestamps.highres_imu = current_messages.time_stamps.highres_imu;
@@ -345,7 +371,9 @@ read_messages()
 
 				case MAVLINK_MSG_ID_ATTITUDE:
 				{
-					//printf("MAVLINK_MSG_ID_ATTITUDE\n");
+				  if ( verbose ) {
+				    fprintf(stderr,"MAVLINK_MSG_ID_ATTITUDE\n");
+				  }
 					mavlink_msg_attitude_decode(&message, &(current_messages.attitude));
 					current_messages.time_stamps.attitude = get_time_usec();
 					this_timestamps.attitude = current_messages.time_stamps.attitude;
@@ -354,7 +382,9 @@ read_messages()
 
 				default:
 				{
-					// printf("Warning, did not handle message id %i\n",message.msgid);
+				  if ( verbose ) {
+				    fprintf(stderr,"Warning, did not handle message id %i\n",message.msgid);
+				  }
 					break;
 				}
 
@@ -362,24 +392,6 @@ read_messages()
 			} // end: switch msgid
 
 		} // end: if read message
-
-		// Check for receipt of all items
-		received_all =
-				this_timestamps.heartbeat                  &&
-				this_timestamps.sys_status                 &&
-//				this_timestamps.battery_status             &&
-//				this_timestamps.radio_status               &&
-				this_timestamps.local_position_ned         &&
-//				this_timestamps.global_position_int        &&
-//				this_timestamps.position_target_local_ned  &&
-				this_timestamps.position_target_global_int &&
-				this_timestamps.highres_imu                &&
-				this_timestamps.attitude                   ;
-
-		// give the write thread time to use the port
-		if ( writing_status > false )
-			usleep(100); // look for components of batches at 10kHz
-
 	} // end: while not received all
 
 	return;
@@ -628,9 +640,15 @@ start()
 	// --------------------------------------------------------------------------
 
 	// Wait for initial position ned
-	while ( not ( current_messages.time_stamps.local_position_ned &&
-				  current_messages.time_stamps.attitude            )  )
+	int i = 5;
+	while ( i > 0 && not ( current_messages.time_stamps.local_position_ned &&
+			       current_messages.time_stamps.attitude            )  )
 	{
+
+	  fprintf(stderr,"current_messages.time_stamps.local_position_ned %d\n",
+		  (int) current_messages.time_stamps.local_position_ned);
+	  i--;
+
 		if ( time_to_exit )
 			return;
 		usleep(500000);

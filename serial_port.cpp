@@ -332,6 +332,7 @@ _open_port(const char* port)
 	// O_RDWR - Read and write
 	// O_NOCTTY - Ignore special chars like CTRL-C
 	fd = open(port, O_RDWR | O_NOCTTY | O_NDELAY);
+	fprintf(stderr,"fd = %d\n", fd);
 
 	// Check for Errors
 	if (fd == -1)

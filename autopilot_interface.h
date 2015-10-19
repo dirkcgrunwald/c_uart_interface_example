@@ -61,7 +61,7 @@
 #include <time.h>
 #include <sys/time.h>
 
-#include <common/mavlink.h>
+#include <pixhawk/mavlink.h>
 
 // ------------------------------------------------------------------------------
 //   Defines
@@ -242,7 +242,7 @@ class Autopilot_Interface
 public:
 
 	Autopilot_Interface();
-	Autopilot_Interface(Serial_Port *serial_port_);
+  Autopilot_Interface(Serial_Port *serial_port_, int verbose = 0);
 	~Autopilot_Interface();
 
 	char reading_status;
@@ -253,6 +253,8 @@ public:
     int system_id;
 	int autopilot_id;
 	int companion_id;
+
+  int verbose;
 
 	Mavlink_Messages current_messages;
 	mavlink_set_position_target_local_ned_t initial_position;
